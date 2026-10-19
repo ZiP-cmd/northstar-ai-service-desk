@@ -100,3 +100,18 @@ The prototype demonstrates several important security principles:
 This portfolio project demonstrates an end-to-end implementation process: translating business requirements into technical components, designing security controls, integrating application services, testing workflows, and documenting implementation limitations.
 
 **All employee accounts, documents, and company scenarios are fictional.**
+
+### Reproducibility Validation
+
+Northstar AI was cloned from its GitHub repository into a separate directory and installed in a fresh Python virtual environment.
+
+The automated test suite completed successfully:
+
+- **30 tests passed**
+- **0 test failures**
+- **Execution time:** 2.34 seconds
+- **Environment:** Windows, Python 3.15.0
+
+One non-failing pytest warning occurred when writing temporary cache files. The application test results were unaffected.
+
+This validation demonstrates that the automated test environment can be reproduced from the repository and its dependency configuration.

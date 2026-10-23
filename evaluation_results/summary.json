@@ -1,0 +1,7 @@
+{
+  "cases": 4,
+  "annotations": 8,
+  "cases_with_preference_disagreement": 1,
+  "preference_disagreement_rate": 0.25,
+  "flagged_for_review": 1
+}

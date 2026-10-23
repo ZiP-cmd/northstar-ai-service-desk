@@ -1,130 +1,170 @@
-# Northstar AI — Intelligent IT Service Desk
+# Northstar AI — Secure IT Service Desk & LLM Evaluation
 
-**A security-focused AI service desk implementation prototype**
+**Python portfolio project | AI application security • LLM response evaluation • QA automation**
 
-## Project Overview
+Northstar AI is a functional, local prototype of an AI-assisted IT support workflow for a **fictional organization**. It combines role-restricted document retrieval, session-based workflows, support ticket approval, and a standalone **LLM response evaluation** demonstration. The project emphasizes a central design principle: **the application enforces identity, permissions, and approvals; the language model does not make security decisions.**
 
-Northstar AI is a Python-based service desk prototype designed for a fictional organization with 250 employees.
+> **Project status:** Independent portfolio prototype, not a production service. Authentication and AI responses are simulated; no live Claude API or corporate SSO is required.
 
-The project demonstrates how an enterprise could integrate AI-assisted knowledge retrieval with role-based access control, IT ticket automation, and employee approval workflows.
+## At a glance
 
-The solution includes an interactive Streamlit interface, simulated AI responses, mock employee sessions, and SQLite-backed ticket storage.
+| Area | What this project demonstrates |
+| --- | --- |
+| Security-first architecture | Role-based document access, simulated session identity, permission checks and cache refresh |
+| IT operations | Approval-before-action ticket creation and SQLite persistence with idempotency protection |
+| LLM evaluation | A/B response preference labels, four-dimension rubric, disagreement review flags, CSV/JSON output |
+| Verification | **54 automated tests passed locally** (October 23, 2026; user-run full suite) |
+| Technology | Python, pytest, Streamlit, SQLite, Git/GitHub; offline mock AI responses |
 
-**Development status:** Functional local prototype. Not production-ready.
+## See it in action
 
-## Business Problem
+The Streamlit demonstration shows the intended access control and IT support experience:
 
-Northstar Technologies faces repetitive IT support requests, fragmented documentation, and manual ticket escalation.
+| Authorized VPN guidance | Confidential information denied |
+| --- | --- |
+| ![James retrieves authorized VPN instructions](screenshots/01-vpn-access.png) | ![Sarah is denied access to restricted HR information](screenshots/02-access-denied.png) |
 
-The proposed solution aims to improve access to IT guidance while enforcing information-access rules and requiring approval before performing support actions.
+| Authorized HR access | Ticket creation after approval |
+| --- | --- |
+| ![Michelle retrieves permitted HR documentation](screenshots/03-hr-access.png) | ![James completes the support-ticket creation workflow](screenshots/04-ticket-created.png) |
 
-These are intended business benefits, not measured production outcomes.
+## The business problem
 
-## Key Features
+A fictional 250-person company has repetitive IT requests, scattered documentation, and manual ticket escalation. Northstar explores how an AI-assisted service desk could offer relevant guidance **without exposing restricted information or executing support actions without user approval**. These are proposed benefits, **not** measured business outcomes.
 
-- Role-based document access for employees, IT support, and HR managers
-- Permission-aware retrieval of fictional company documentation
-- Mock AI responses for testing without paid API access
-- Simulated session-bound employee identity
-- Authorization cache with expiration and refresh behavior
-- Support ticket proposals and employee confirmation
-- SQLite ticket storage with unique idempotency keys
-- Streamlit demonstration interface
-- Automated security and integration tests
+## How Northstar works
 
-## Technology Stack
+```text
+Employee (fictional session)
+          |
+          v
+Session identity -> application authorization check
+          |                    |
+          | permitted          +--> denied: no restricted document returned
+          v
+Approved documentation -> mock AI response -> employee
+          |
+          +--> unresolved issue -> ticket proposal -> user confirmation
+                                               |
+                                               v
+                                      ticket storage (SQLite)
 
-| Technology | Purpose |
-|---|---|
-| Python | Application logic |
-| Streamlit | Web interface |
-| pytest | Automated testing |
-| SQLite | Transactional ticket storage |
-| Mock AI backend | Simulated assistant responses |
+Separate offline evaluation workflow:
+Synthetic prompt + responses A/B + rubric annotations
+          -> validation -> scoring and preference aggregation
+          -> disagreement flags -> CSV / JSON review reports
+```
 
-## Example Demonstration Scenarios
+**Why the architecture matters:** Language models can generate persuasive text, but they must not be trusted to determine employee permissions. Northstar performs access decisions in the application layer before restricted material is returned. Session handling, cache behavior, confirmation, and idempotency are exercised with tests.
 
-**Scenario 1: Authorized retrieval**
+## LLM response evaluation & annotation QA
 
-James requests VPN instructions. Northstar verifies his role and returns the authorized document.
+The standalone [`llm_evaluation.py`](llm_evaluation.py) module demonstrates a small, repeatable **RLHF-style preference-evaluation workflow** without claiming to train a model.
 
-**Scenario 2: Restricted information**
+- Compares **response A vs. response B**, recording `A`, `B`, or `tie` preferences and written rationales.
+- Uses a **1–5 rubric** for accuracy (35%), instruction following (25%), helpfulness (20%), and safety (20%).
+- Validates annotation structure and required fields before aggregating results.
+- Computes descriptive mean rubric scores, preference outcomes, and disagreement flags.
+- Produces `summary.json` and `case_results.csv` for review.
 
-Sarah, an IT support employee, requests confidential HR information. Northstar rejects the request.
+**Illustrative run (synthetic, hand-authored cases):**
 
-**Scenario 3: HR authorization**
+| Metric | Result |
+| --- | ---: |
+| Evaluation cases | 4 |
+| Example annotation records | 8 |
+| Cases with conflicting preference labels | 1 |
+| Case-level preference disagreement rate | 25% |
+| Cases flagged for review | 1 |
 
-Michelle, an HR manager, accesses documentation permitted to her assigned role.
+These figures describe **only the fabricated demonstration dataset**, not real-world human-annotator agreement or model accuracy. The 25% figure is *not* Cohen's kappa or another chance-corrected agreement statistic. The rating labels are illustrative, not independent professional annotator judgments. A high composite score does not override a serious security violation.
 
-**Scenario 4: Support ticket escalation**
+For the scoring rules, examples, and limitations, see **[LLM Evaluation Guide](docs/LLM_EVALUATION.md)**. Source annotations are in [`evaluation_samples.json`](evaluation_samples.json), and automated tests are in [`tests/test_llm_evaluation.py`](tests/test_llm_evaluation.py).
 
-James reports an unresolved VPN issue, reviews a ticket proposal, approves it, and receives a generated ticket ID.
+### Run the evaluation
 
-## Testing
+From the repository root in PowerShell (using an existing local `.venv`):
 
-The project has previously reported 30 passing automated tests covering authorization, session handling, permission-cache expiration, ticket approval, and database idempotency.
+```powershell
+.\.venv\Scripts\python.exe llm_evaluation.py --output evaluation_results
+.\.venv\Scripts\python.exe -m pytest tests/test_llm_evaluation.py -q
+```
 
-Four Streamlit user acceptance scenarios have also passed.
+Or use `python` instead of `.\.venv\Scripts\python.exe` in an environment with Python and pytest available. `llm_evaluation.py` itself uses only the Python standard library.
 
-Test execution and results should be independently reproducible using the repository setup instructions.
-## Application Screenshots
+## Run the full project locally
 
-### Authorized VPN Retrieval
-![James accessing VPN instructions](screenshots/01-vpn-access.png)
+Clone the project and create a virtual environment:
 
-### Access Control
-![Sarah denied HR access](screenshots/02-access-denied.png)
+```powershell
+git clone https://github.com/ZiP-cmd/northstar-ai-service-desk.git
+cd northstar-ai-service-desk
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-### HR Manager Access
-![Michelle accessing HR documentation](screenshots/03-hr-access.png)
+Run the full test suite:
 
-### Support Ticket Creation
-![James creating a support ticket](screenshots/04-ticket-created.png)
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
 
-## Security Architecture
+Launch the demonstration interface:
 
-The prototype demonstrates several important security principles:
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run portfolio_app.py
+```
 
-- Authorization occurs before restricted document content is returned.
-- Backend services derive employee identity from simulated session records rather than accepting a username for each request.
-- Ticket proposals are bound to a session and contain server-stored issue details.
-- Ticket storage uses a unique proposal ID to prevent duplicate database records.
+The interactive app uses fictional accounts and a mock AI backend. See [`setup.md`](setup.md) for additional repository setup information. Actual compatibility may depend on the Python version and environment.
 
-## Known Limitations
+## Security and QA scenarios
 
-- Authentication is simulated; real corporate SSO has not been integrated.
-- The application does not currently use the live Claude API.
-- Document retrieval is based on a small fictional knowledge base rather than production semantic search.
-- Ticket proposals are held in application memory.
-- The approval workflow does not yet provide crash-safe distributed recovery.
-- The prototype has not undergone a production security assessment.
+| Scenario | Expected behavior |
+| --- | --- |
+| James requests VPN instructions | Approved documentation is returned |
+| Sarah (IT support) requests HR salary information | Access is denied |
+| Michelle (HR manager) requests permitted HR information | Access is granted |
+| Employee reports unresolved issue | Ticket proposal requires confirmation |
+| Same approved proposal is retried | Idempotency logic prevents duplicate storage |
+| Two preference annotations differ | Evaluation case is flagged for review |
 
-## Future Enhancements
+**Testing:** On October 23, 2026, the full test suite passed locally with **54 passed, 0 failed (3.07 seconds)**. An earlier separately cloned environment had **30 passing tests**; that historical validation is distinct from the current full-suite result. The repository's tests can be rerun using the commands above; this is not a claim of CI/CD or production validation.
 
-- Corporate SSO integration
-- Live Claude API integration
-- Secure retrieval-augmented generation
-- Persistent, transactionally managed ticket approval records
-- Audit logging and operational monitoring
-- Deployment configuration and continuous integration
+## Project structure
 
-## Project Purpose
+```text
+northstar-ai-service-desk/
+├── portfolio_app.py            # Streamlit portfolio interface
+├── secure_service.py           # Service workflows
+├── access_control.py           # Role-based permission checks
+├── session_auth.py             # Simulated sessions
+├── fresh_authorization.py      # Permission-aware retrieval checks
+├── permission_cache.py         # Cache behavior
+├── ticket_approval.py          # Ticket confirmation workflow
+├── sqlite_ticket_approval.py   # SQLite-backed ticket handling
+├── llm_evaluation.py           # Offline evaluation aggregation
+├── evaluation_samples.json     # Synthetic prompts, responses, ratings
+├── tests/                      # Automated checks including LLM evaluation
+├── docs/LLM_EVALUATION.md      # Rubric and caveats
+└── screenshots/                # UI demo screenshots
+```
 
-This portfolio project demonstrates an end-to-end implementation process: translating business requirements into technical components, designing security controls, integrating application services, testing workflows, and documenting implementation limitations.
+## Boundaries and next improvements
 
-**All employee accounts, documents, and company scenarios are fictional.**
+This is intentionally a **portfolio demonstration**, not a deployed enterprise system:
 
-### Reproducibility Validation
+- Simulated login/session identity; no production SSO integration.
+- Mock AI responses; no live Claude inference or fine-tuning.
+- Small fictional document corpus; no deployed vector database or semantic-search pipeline.
+- Evaluation annotations are fabricated examples rather than blind, independent annotation rounds.
+- Approval state is not designed for distributed crash recovery; no external security audit has been conducted.
 
-Northstar AI was cloned from its GitHub repository into a separate directory and installed in a fresh Python virtual environment.
+Future improvements could include independently collected annotations and adjudication logs; formal error taxonomies and sampling plans; access-control audit logs; CI test automation; production authentication; and live-model integration behind existing security checks.
 
-The automated test suite completed successfully:
+## About this project
 
-- **30 tests passed**
-- **0 test failures**
-- **Execution time:** 2.34 seconds
-- **Environment:** Windows, Python 3.15.0
+I built Northstar AI as an independent, hands-on project to practice turning AI-assisted business workflows into testable application components. My emphasis was **security before retrieval, explicit approval before ticket creation, and reproducible evaluation rather than unsupported performance claims**.
 
-One non-failing pytest warning occurred when writing temporary cache files. The application test results were unaffected.
+**Author:** Logan Nelson · [GitHub profile](https://github.com/ZiP-cmd)
 
-This validation demonstrates that the automated test environment can be reproduced from the repository and its dependency configuration.
+*All users, company documents, support requests, and evaluation cases are fictional.*

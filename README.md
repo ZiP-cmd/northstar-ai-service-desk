@@ -67,6 +67,19 @@ The project has previously reported 30 passing automated tests covering authoriz
 Four Streamlit user acceptance scenarios have also passed.
 
 Test execution and results should be independently reproducible using the repository setup instructions.
+## Application Screenshots
+
+### Authorized VPN Retrieval
+![James accessing VPN instructions](screenshots/01-vpn-access.png)
+
+### Access Control
+![Sarah denied HR access](screenshots/02-access-denied.png)
+
+### HR Manager Access
+![Michelle accessing HR documentation](screenshots/03-hr-access.png)
+
+### Support Ticket Creation
+![James creating a support ticket](screenshots/04-ticket-created.png)
 
 ## Security Architecture
 

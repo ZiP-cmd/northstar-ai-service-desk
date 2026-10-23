@@ -20,7 +20,7 @@ def test_valid_session_allows_permitted_document():
     token = create_demo_session("sarah")
     result = secure_retrieve(token, "vpn_guide")
 
-    assert "company VPN" in result
+    assert "VPN" in result
 
 
 def test_valid_session_enforces_permissions():

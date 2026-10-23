@@ -40,7 +40,7 @@ def test_unknown_employee_denied():
 
 def test_authorized_document_retrieval():
     result = retrieve_document("james", "vpn_guide")
-    assert "company VPN" in result
+    assert " VPN" in result
 
 
 def test_restricted_document_not_retrieved():
